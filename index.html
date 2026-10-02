@@ -163,7 +163,7 @@ function list(){
   for (const r of rows){
     if (r.d !== cur){ if (cur) html += "</ul>"; cur = r.d; html += `<h2 class="day">${esc(longDay(r.d))}</h2><ul class="ev">`; }
     const e = r.e;
-    html += `<li><span class="tm">${esc(tm(e.st)) || "&nbsp;"}</span><a href="#/event/${e.id}?d=${r.d}">${esc(e.t)}</a><br><span class="where">${esc(e.v)}${e.tw?", "+esc(e.tw):""}${home&&e.ll?`, ${dist(e).toFixed(1)} mi`:""}</span></li>`;
+    html += `<li><span class="tm">${e.st ? esc(tm(e.st)) : `<span class="where">No time</span>`}</span><a href="#/event/${e.id}?d=${r.d}">${esc(e.t)}</a><br><span class="where">${esc(e.v)}${e.tw?", "+esc(e.tw):""}${home&&e.ll?`, ${dist(e).toFixed(1)} mi`:""}</span></li>`;
   }
   if (cur) html += "</ul>";
   if (!rows.length) html += `<p class="center">Nothing matches. Try “everything after” or a different kind of event.</p>`;
