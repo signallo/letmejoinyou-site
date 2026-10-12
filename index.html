@@ -175,7 +175,7 @@ function home(){
     <section>
       <p class="spaced">HI, I'M MICK</p>
       <p style="margin:0 0 12px">I live in Pittsburgh, and I made this site to try and lower the amount of isolation in our community. The "ugly faces" thing is from <a href="https://www.youtube.com/watch?v=AgHaGrZkkv4" target="_blank" rel="noopener">this song</a> by The Doors. It basically means that isolation is a big problem because it makes other people seem ugly and frightening to us. But when an "ugly" face smiles at us, it challenges that lie. Because there's no such thing as an ugly face with a smile on it. If you want to support the site, please check out the links below.</p>
-      <p class="center" style="margin:0"><a href="${sms("Hi Mick, I'd like to volunteer my ugly face.")}">Want to volunteer your ugly face too?</a>${SITE.support ? ` &nbsp;|&nbsp; <a href="${esc(SITE.support)}">Support this site</a>` : ""}</p>
+      <p class="center" style="margin:0"><a href="${SITE.phone ? sms("Hi Mick, I'd like to volunteer my ugly face.") : "#/"}">Want to volunteer your "ugly" face too?</a> &nbsp;|&nbsp; <a href="${SITE.support ? esc(SITE.support) : "#/"}">Support this site</a></p>
     </section>`;
 }
 
