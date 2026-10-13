@@ -498,9 +498,16 @@ document.getElementById("saveBtn").onclick = async () => {
     const name = answers.saved_at.replace(/[:.]/g, "-");
     await gh(`/contents/inbox/${name}.json`, {method:"PUT", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({message:`Review answers ${R.week}`, branch:BRANCH, content:b64(JSON.stringify(answers, null, 1))})});
-    await gh(`/actions/workflows/${WORKFLOW}/dispatches`, {method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ref:"main"})});
     store.del(draftKey());
+    try {
+      await gh(`/actions/workflows/${WORKFLOW}/dispatches`, {method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ref:"main"})});
+    } catch(e){
+      main.innerHTML = `<p>Your answers are saved. The rebuild didn't start (${esc(e.message)}): the token needs "Actions: Read and write" on letmejoinyou.
+        Start it from the <a href="https://github.com/${REPO}/actions/workflows/${WORKFLOW}" target="_blank" rel="noopener">Actions tab</a> (Run workflow), or it runs with next Monday's build.</p>`;
+      document.getElementById("bar").hidden = true;
+      return;
+    }
     main.innerHTML = `<p>Saved. The site is rebuilding with your answers; it takes a few minutes.
       <a href="https://github.com/${REPO}/actions" target="_blank" rel="noopener">Watch it run</a>.
       When it finishes, reload this page to see what's left.</p>`;
