@@ -293,10 +293,14 @@ function listings(){
 }
 
 // ------------------------------------------------------------------ VP venues
+// Answers about a place are kept by its printed name and address, so an
+// unsaved answer never lands on a different place after a rebuild.
+const placeKey = v => `${v.wording}|${v.address}`;
 function vpVenues(){
   if (!R.vp_venues.length) return `<p class="muted">None this week.</p>`;
   const rows = R.vp_venues.map((v, n) => {
-    const a = A.venues[n] || (A.venues[n] = {on:false, v: v.suggest && v.suggest.venue_id ? {mode:"map", id:v.suggest.venue_id}
+    const vk = placeKey(v);
+    const a = A.venues[vk] || (A.venues[vk] = {on:false, v: v.suggest && v.suggest.venue_id ? {mode:"map", id:v.suggest.venue_id}
       : {mode:"new", name: (v.suggest && v.suggest.new && v.suggest.new.name) || v.wording, address: (v.suggest && v.suggest.new && v.suggest.new.address) || v.address},
       scope: (v.suggest && v.suggest.scope) || "all"});
     return `<div class="vrow" data-vn="${n}"><label><input type="checkbox" data-k="on" ${a.on?"checked":""}> <b>${esc(v.wording)}</b></label>
@@ -349,7 +353,7 @@ main.addEventListener("input", e => {
   }
   const vr = el.closest("[data-vn]");
   if (vr){
-    const a = A.venues[vr.dataset.vn];
+    const a = A.venues[placeKey(R.vp_venues[vr.dataset.vn])];
     if (k === "on") a.on = el.checked; else if (k === "scope") a.scope = val;
     else if (k.endsWith(".id")) a.v.id = VENUE_BY_LABEL[val] || ""; else setPath(a, k, val);
     if (k.endsWith("mode")){ const n = vr.dataset.vn; const t = document.createElement("div"); t.innerHTML = vpVenues(); vr.replaceWith(t.querySelector(`[data-vn="${n}"]`)); }
@@ -466,7 +470,7 @@ function collect(){
   }
   const venues = [];
   R.vp_venues.forEach((v, n) => {
-    const a = A.venues[n]; if (!a || !a.on) return;
+    const a = A.venues[placeKey(v)]; if (!a || !a.on) return;
     const c = venueChoice(a.v, errs, v.wording); if (!c){ errs.push(`${v.wording}: pick or enter the venue`); return; }
     venues.push({source:v.source, wording:v.wording, other_wordings:v.other_wordings||[], venue:c, scope:a.scope});
   });
