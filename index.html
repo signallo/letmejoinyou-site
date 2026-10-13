@@ -78,7 +78,7 @@ form.filters select[name=p]{max-width:15em}
 <div class="page">
 <header>
   <h1><a href="#/">Let Me Join You</a></h1>
-  <p class="sub">A little community building project in Pittsburgh</p>
+  <p class="sub">A community building project in Pittsburgh</p>
 </header>
 <hr>
 <main id="main"></main>
@@ -141,7 +141,7 @@ function home(){
     <section class="center">
       <p class="spaced">LONELY?</p>
       <h2 class="big">Let's grab a cup of coffee.</h2>
-      <p class="narrow" style="margin-top:0;margin-bottom:12px"><i>${esc(SITE.quote)}</i> Jim got it right with that one. I've been there plenty of times myself. But then one of those "ugly" faces smiles at me, and it shakes me out of it.</p>
+      <p class="narrow" style="margin-top:0;margin-bottom:12px"><i>${esc(SITE.quote)}</i> The Doors got it right with that one. I've been there plenty of times myself. But then one of those "ugly" faces smiles at me, and it shakes me out of it.</p>
       <p class="narrow" style="margin-top:0;margin-bottom:18px">If it's been awhile since an ugly face smiled at you, I volunteer mine :) Pick a coffee shop and let me join you. -Mick</p>
       <a class="btn" href="${sms("Hi Mick, I saw your site. Want to grab coffee sometime?")}">Let's get coffee</a>
       <p class="muted small" style="margin:12px 0 0">Or just text me at ${esc(PHONE_SHOWN)}.</p>
@@ -174,7 +174,7 @@ function home(){
     <hr class="big">
     <section>
       <p class="spaced">HI, I'M MICK</p>
-      <p style="margin:0 0 12px">I live in Pittsburgh, and I made this site to try and lower the amount of isolation in our community. The "ugly faces" thing is from <a href="https://www.youtube.com/watch?v=AgHaGrZkkv4" target="_blank" rel="noopener">this song</a> by The Doors. It basically means that isolation is a big problem because it makes other people seem ugly and frightening to us. But when an "ugly" face smiles at us, it challenges that lie. Because there's no such thing as an ugly face with a smile on it. If you want to support the site, please check out the links below.</p>
+      <p style="margin:0 0 12px">I live in Pittsburgh, and I made this site to try and lower the amount of isolation in our community. The "ugly faces" thing is from <a href="https://www.youtube.com/watch?v=AgHaGrZkkv4" target="_blank" rel="noopener">People Are Strange</a> by The Doors. It basically means that isolation is a big problem because it makes other people seem ugly and frightening to us. But when an "ugly" face smiles at us, it challenges that lie. Because there's no such thing as an ugly face with a smile on it. If you want to support the site, please check out the links below.</p>
       <p class="center" style="margin:0"><a href="${SITE.phone ? sms("Hi Mick, I'd like to volunteer my ugly face.") : "#/"}">Volunteer</a> &nbsp;|&nbsp; <a href="${SITE.support ? esc(SITE.support) : "#/"}">Support this site</a></p>
     </section>`;
 }
