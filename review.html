@@ -140,28 +140,35 @@ function start(){
 
 // ------------------------------------------------------------------ numbers
 function stats(){
+  // Each week's numbers are the ones the Monday run recorded, before any
+  // review: what resolved on its own that week. Later rebuilds don't change
+  // them. "Waiting now" is what is still left for you after your answers.
   const weeks = [...new Set(R.history.map(r => r.week))].sort().slice(-6);
   if (!weeks.includes(R.week)) weeks.push(R.week);
   const by = {};
-  for (const r of [...R.history, ...R.now]) (by[r.source] ||= {})[r.week] = r;
-  const pct = (a,b) => b ? Math.round(100*a/b) + "%" : "–";
+  for (const r of R.history) (by[r.source] ||= {})[r.week] = r;
   const now = Object.fromEntries(R.now.map(r => [r.source, r]));
+  for (const s of Object.keys(now)) (by[s] ||= {});
+  const rec = s => by[s][R.week] || now[s];   // a week the Monday run didn't record: the current numbers
+  const pct = (a,b) => b ? Math.round(100*a/b) + "%" : "–";
   const sources = Object.keys(by).sort((a,b) => (a==="All"?-1:b==="All"?1:0) ||
-    ((now[b]||{}).z||0) - ((now[a]||{}).z||0) || a.localeCompare(b));
+    ((rec(b)||{}).z||0) - ((rec(a)||{}).z||0) || a.localeCompare(b));
   let h = `<div class="table-wrap"><table class="stats"><thead><tr><th>Source</th>
-    <th title="Listings read and kept">X</th><th title="Published with no review">Y auto</th>
-    <th title="Waiting for review">Z review</th><th title="Venues the map matched">Venues</th>`;
-  for (const w of weeks.slice(0,-1)) h += `<th title="Auto share, week of ${w}">${md(w)}</th>`;
+    <th title="Listings read and kept this week">All events</th><th title="Published on their own, before any review">Auto resolved</th>
+    <th title="Needed you this week">Manual review</th><th title="Venues the map matched on its own">Venues</th>
+    <th title="Still waiting for you after your answers">Waiting now</th>`;
+  for (const w of weeks.slice(0,-1)) h += `<th title="Auto resolved, week of ${w}">${md(w)}</th>`;
   h += `</tr></thead><tbody>`;
   for (const s of sources){
-    const n = now[s];
+    const n = rec(s), left = now[s];
     h += `<tr class="${s==="All"?"all":""}"><td>${esc(s)}</td>`;
     h += n ? `<td>${n.x}</td><td>${n.y} <span class="muted">${pct(n.y,n.x)}</span></td><td>${n.z}</td><td>${pct(n.venue_matched,n.x)}</td>`
            : `<td colspan="4" class="muted">not read this week</td>`;
-    for (const w of weeks.slice(0,-1)){ const r = by[s][w]; h += `<td title="${r?`${r.y} of ${r.x} auto, venues ${pct(r.venue_matched,r.x)}`:""}">${r ? pct(r.y,r.x) : ""}</td>`; }
+    h += `<td>${left ? left.z : ""}</td>`;
+    for (const w of weeks.slice(0,-1)){ const r = by[s][w]; h += `<td title="${r?`${r.y} of ${r.x} auto resolved, venues ${pct(r.venue_matched,r.x)}`:""}">${r ? pct(r.y,r.x) : ""}</td>`; }
     h += `</tr>`;
   }
-  return h + `</tbody></table></div><p class="note">X: listings read. Y: published on their own. Z: waiting for you. The columns on the right are the auto share in earlier weeks.</p>`;
+  return h + `</tbody></table></div><p class="note">All events, Auto resolved, Manual review, and Venues are the numbers from this week's Monday run, before any review; they stay as they were all week. Waiting now is what is still left for you. The columns on the right are the auto resolved share in earlier weeks.</p>`;
 }
 
 // ------------------------------------------------------------------ questions
