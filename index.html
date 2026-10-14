@@ -183,7 +183,7 @@ function home(){
     <section>
       <p class="spaced">HI, I'M MICK</p>
       <p style="margin:0 0 12px">I live in Pittsburgh, and I made this site to try and lower the amount of isolation in our community. The "ugly faces" thing is from <a href="https://www.youtube.com/watch?v=AgHaGrZkkv4" target="_blank" rel="noopener">People Are Strange</a> by The Doors. It basically means that isolation is a big problem because it makes other people seem ugly and frightening to us. But when an "ugly" face smiles at us, it challenges that lie. Because there's no such thing as an ugly face with a smile on it. If you want to support the site, please check out the links below.</p>
-      <p class="center" style="margin:0"><a href="${SITE.phone ? sms("Hi Mick, I'd like to volunteer with LMJY.") : "#/"}">Volunteer</a> &nbsp;|&nbsp; <a href="${SITE.support ? esc(SITE.support) : "#/"}">Support this site</a></p>
+      <p class="center" style="margin:0"><a href="${SITE.phone ? sms("Hi Mick, I'd like to volunteer with LMJY.") : "#/"}">Volunteer</a> &nbsp;|&nbsp; <a href="${SITE.support ? esc(SITE.support) : "#/support"}">Support this site</a></p>
     </section>`;
 }
 
@@ -355,6 +355,14 @@ function schedules(){
   });
 }
 
+function support(){
+  main.innerHTML = `<p class="spaced">SUPPORT THIS SITE</p>
+    <p>Let Me Join You is an early stage project. Eventually I might have a donate button on this page, or some other way(s) for you to financially support it.</p>
+    <p>But for now you can support the site by sharing it with people who might benefit from it or be able to give it a broader audience here in Pittsburgh.</p>
+    <p>If you'd like to volunteer your time to hang out with lonely folks, send me an email at <a href="mailto:hi@letmejoinyou.com">hi@letmejoinyou.com</a> or text me at ${esc(PHONE_SHOWN)}.</p>
+    <p class="center"><a href="#/">Back home</a></p>`;
+}
+
 function privacy(){
   main.innerHTML = `<p class="spaced">PRIVACY</p>
     <p>If you sign up for the email, I keep your address on a private list so I can send you things (weekly events and general LMJY updates). To get off the list, reply to any email or write to <a href="mailto:hi@letmejoinyou.com">hi@letmejoinyou.com</a>. If you text me, your number stays in my messages. I don't share or sell any emails or phone numbers.</p>
@@ -389,6 +397,7 @@ function route(){
   else if (h.startsWith("#/events")) list();
   else if (h.startsWith("#/event/")) detail(h.slice(8).split("?")[0]);
   else if (h.startsWith("#/privacy")) privacy();
+  else if (h.startsWith("#/support")) support();
   else home();
   window.scrollTo(0,0);
 }
