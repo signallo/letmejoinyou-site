@@ -262,7 +262,8 @@ function itemHtml(it){
     · <span class="where">${it.location_venue ? esc(it.location_venue) : "no venue matched: “" + esc((it.printed||{}).location_text || "") + "”"}</span></div>`;
   h += fieldWrap(it, "title", "Title", `<input class="title-in" data-k="title" value="${esc(v.title)}">`);
   if (!st.parts){
-    if (seriesish(it)) h += fieldWrap(it, "dates", "Dates", `<input class="ds" data-k="dates" value="${esc(v.dates)}" placeholder="10/12, 10/19, 10/26"> <span class="note">${esc(it.recurrence_text||"")}</span>`);
+    const range = isVP(it) && it.date_end && !(it.dates||[]).length;
+    if (seriesish(it)) h += fieldWrap(it, "dates", "Dates", `<input class="ds" data-k="dates" value="${esc(v.dates)}" placeholder="10/12, 10/19, 10/26"> <span class="note">${range ? `Range ${esc(md(it.date_start))} to ${esc(md(it.date_end))}. Leave empty and Approve to keep the whole range.` : esc(it.recurrence_text||"")}</span>`);
     else h += fieldWrap(it, "date_start", "Date", `<input type="date" class="dt" data-k="date_start" value="${esc(v.date_start)}"> to <input type="date" class="dt" data-k="date_end" value="${esc(v.date_end)}">${it.dates_note?`<div class="note">${esc(it.dates_note)}</div>`:""}`);
     h += `<div class="row">` + fieldWrap(it, "start_time", "Starts", `<input class="t" data-k="start_time" value="${esc(v.start_time)}" placeholder="7:00 PM">`)
        + fieldWrap(it, "end_time", "Ends", `<input class="t" data-k="end_time" value="${esc(v.end_time)}" placeholder="none">`) + `</div>`;
@@ -442,7 +443,8 @@ function collect(){
       if ((flagged(f) || changed(f)) && v[f]) fields[f] = v[f];
     if (!st.parts){
       if (seriesish(it)){
-        if (flagged("dates") || changed("dates")){ const d = readDates(v.dates); if (!d || !d.length) bad.push("dates"); else fields.recurrence_dates = d; }
+        const keepRange = isVP(it) && it.date_end && !(it.dates||[]).length && !(v.dates||"").trim();
+        if ((flagged("dates") || changed("dates")) && !keepRange){ const d = readDates(v.dates); if (!d || !d.length) bad.push("dates"); else fields.recurrence_dates = d; }
       } else {
         if ((flagged("date_start") || changed("date_start"))){ if (!v.date_start) bad.push("date_start"); else fields.date_start = v.date_start; }
         if (changed("date_end") && v.date_end) fields.date_end = v.date_end;
