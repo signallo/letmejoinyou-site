@@ -269,7 +269,9 @@ function detail(id){
                e.dn ? "" : `Time not printed, check the ${vp ? "listing" : "bulletin"}`;
   const others = e.rec || (vp && e.dates.length > 1) ? e.dates.filter(x => x !== d) : [];
   const aud = (AUD.find(a => a[0]===e.au)||["",e.au])[1];
-  const ask = sms(`Hi Mick, want to go to ${e.t} on ${longDay(d)}?`);
+  // The text names the event and date, then links to this event's page.
+  const link = `${location.origin}${location.pathname}#/event/${e.id}?d=${d}`;
+  const ask = sms(`Hi Mick, want to go to ${e.t} on ${longDay(d)}? ${link}`);
   const sources = vp
     ? `<dt>Listed on</dt><dd>${e.src.map(([p,u],i)=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(p)}${e.src.length>1?` (listing ${i+1})`:""}</a>`).join("<br>")}</dd>`
     : `<dt>From the bulletin of</dt><dd>${e.src.map(([p,u,pg])=>u?`<a href="${esc(pageUrl(u,pg))}" target="_blank" rel="noopener">${esc(p)}</a>${pg?`, page ${pg}`:""}`:esc(p)).join("<br>")}</dd>`;
@@ -286,7 +288,8 @@ function detail(id){
       ${sources}
     </dl>
     <p class="center" style="margin:22px 0 8px">Don't want to go alone?</p>
-    <p class="center" style="margin:0 0 22px"><a class="btn" href="${ask}">Let me join you</a></p>
+    <p class="center" style="margin:0"><a class="btn" href="${ask}">Let me join you</a></p>
+    <p class="center muted small" style="margin:12px 0 22px">Or just text me at ${esc(PHONE_SHOWN)}.</p>
     <p class="center"><a href="${catHref(c)}">Back to ${esc(lower(c))}</a></p>`;
 }
 
