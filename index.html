@@ -189,7 +189,7 @@ function home(){
 
 function readFilters(){
   const q = new URLSearchParams(location.hash.split("?")[1] || "");
-  return {cat:q.get("cat")||"", from:q.get("from")||TODAY, span:q.get("span")||"7", type:q.get("type")||"", aud:q.get("aud")||"",
+  return {cat:q.get("cat")||"", from:q.get("from")||TODAY, span:q.get("span")||"14", type:q.get("type")||"", aud:q.get("aud")||"",
           p:q.get("p")||"", zip:(q.get("zip")||"").trim(), mi:q.get("mi")||"10"};
 }
 function miles(a, b){
@@ -204,7 +204,7 @@ function list(){
   const f = readFilters();
   const c = catBySlug[f.cat] || CATS[3];
   const catholic = c.s === "catholic";
-  const end = new Date(pd(f.from)); end.setDate(end.getDate() + (f.span==="1"?0:f.span==="7"?6:3650));
+  const end = new Date(pd(f.from)); end.setDate(end.getDate() + (f.span==="1"?0:f.span==="7"?6:f.span==="14"?13:3650));
   const endIso = iso(end);
   const home = f.zip ? ZIPS[f.zip] : null;
   const badZip = f.zip && !home;
@@ -225,7 +225,7 @@ function list(){
     <form class="filters" id="ff">
       <input type="hidden" name="cat" value="${c.s}">
       <label>Starting <input type="date" name="from" value="${f.from}" min="${TODAY}"></label>
-      <label>Show <select name="span">${opt("1","that day",f.span)}${opt("7","7 days",f.span)}${opt("all","everything after",f.span)}</select></label><br>
+      <label>Show <select name="span">${opt("1","that day",f.span)}${opt("7","7 days",f.span)}${opt("14","14 days",f.span)}${opt("all","everything after",f.span)}</select></label><br>
       ${catholic ? `<label>Kind <select name="type">${opt("","any kind",f.type)}${TYPES.map(t=>opt(t,t,f.type)).join("")}</select></label>
       <label>For <select name="aud">${opt("","anyone",f.aud)}${AUD.map(([v,l])=>opt(v,l,f.aud)).join("")}</select></label><br>
       <label>Parish <select name="p">${opt("","any parish",f.p)}${PARISHES.map(p=>opt(p,p,f.p)).join("")}</select></label><br>` : ""}
@@ -235,7 +235,8 @@ function list(){
       ${badZip?`<div class="note">I don’t have zip code ${esc(f.zip)}. Try a nearby zip in western Pennsylvania.</div>`:""}
     </form>
     ${catholic ? `<p class="note center">Regular weekly Mass, confession, and adoration times are on the <a href="#/schedules">Mass, confession &amp; adoration</a> page.</p>` : ""}
-    <p class="count">${rows.length} event${rows.length===1?"":"s"}</p>`;
+    <p class="count">${rows.length} event${rows.length===1?"":"s"}</p>
+    ${f.span==="14" && rows.length ? `<p class="note center">Showing all events for the next 14 days. To see further out, use the search dropdown features above.</p>` : ""}`;
   let cur = "";
   for (const r of rows){
     if (r.d !== cur){ if (cur) html += "</ul>"; cur = r.d; html += `<h2 class="day">${esc(longDay(r.d))}</h2><ul class="ev">`; }
