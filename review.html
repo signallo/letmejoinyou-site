@@ -25,6 +25,7 @@ h2{font-size:26px;font-weight:normal;margin:28px 0 6px}
 .muted,.where{color:var(--muted)}
 .small{font-size:15px}
 .note{color:var(--muted);font-size:15px}
+.vague{color:var(--bad);margin-top:4px}
 nav.jump{text-align:center;font-size:16px;line-height:1.9}
 select,input,button,textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--bg)}
 input,select,textarea{border:1px solid var(--rule);padding:4px 6px;max-width:100%}
@@ -38,8 +39,8 @@ table.stats th:first-child,table.stats td:first-child{text-align:left;white-spac
 table.stats tr.all td{font-weight:bold}
 .item{border-top:1px solid var(--rule);padding:12px 0 14px}
 .item.approve{background:var(--ok);box-shadow:-8px 0 0 var(--ok),8px 0 0 var(--ok)}
-.item.drop{background:var(--drop);box-shadow:-8px 0 0 var(--drop),8px 0 0 var(--drop)}
-.item.drop .fields{opacity:.45}
+.item.drop,.item.skip{background:var(--drop);box-shadow:-8px 0 0 var(--drop),8px 0 0 var(--drop)}
+.item.drop .fields,.item.skip .fields{opacity:.45}
 .row{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
 .head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
 .head .acts{display:flex;gap:6px}
@@ -254,7 +255,7 @@ function itemHtml(it){
   const typeField = vp ? "category" : "event_type";
   let h = `<div class="item ${st.action||""}" data-lid="${it.lid}">
     <div class="head"><span class="muted small">${esc(it.source)}${it.part?` · part ${esc(it.part)}`:""}${it.link?` · <a href="${esc(it.link)}" target="_blank" rel="noopener">${vp?"listing":"bulletin"}</a>`:""}</span>
-    <span class="acts"><button data-act="approve" class="${st.action==="approve"?"on":""}">Approve</button><button data-act="drop" class="${st.action==="drop"?"on":""}">Drop</button></span></div>
+    <span class="acts"><button data-act="approve" class="${st.action==="approve"?"on":""}">Approve</button><button data-act="drop" class="${st.action==="drop"?"on":""}" title="Never publish this listing again">Drop</button><button data-act="skip" class="${st.action==="skip"?"on":""}" title="Leave it out of this week only">Skip this week</button></span></div>
     <div class="fields">`;
   const firstDay = (it.dates||[])[0] || it.date_start;
   h += `<div class="small">${firstDay ? `<b>${esc(shortDay(firstDay))}</b>` : `<span class="where">no date read</span>`}${(it.dates||[]).length > 1 ? ` <span class="where">and ${it.dates.length-1} more</span>` : ""}
@@ -268,8 +269,8 @@ function itemHtml(it){
     h += `<div class="row">` + fieldWrap(it, "start_time", "Starts", `<input class="t" data-k="start_time" value="${esc(v.start_time)}" placeholder="7:00 PM">`)
        + fieldWrap(it, "end_time", "Ends", `<input class="t" data-k="end_time" value="${esc(v.end_time)}" placeholder="none">`) + `</div>`;
     h += fieldWrap(it, "venue", "Venue", venueInner(v.venue, "venue.") +
-      `<div class="small">Use this wording in: <label><input type="radio" name="sc-${it.lid}" data-k="scope" value="bulletin" ${v.scope!=="all"?"checked":""}> This ${vp?"source":"bulletin"} only</label>
-       <label><input type="radio" name="sc-${it.lid}" data-k="scope" value="all" ${v.scope==="all"?"checked":""}> All bulletins</label></div>`);
+      `<div class="small">Save this wording for: <label><input type="radio" name="sc-${it.lid}" data-k="scope" value="bulletin" ${v.scope!=="all"?"checked":""}> Only this pull source</label>
+       <label><input type="radio" name="sc-${it.lid}" data-k="scope" value="all" ${v.scope==="all"?"checked":""}> All pull sources</label></div>` + vagueNote((it.suggest||{}).vague));
   } else {
     h += st.parts.map((p, n) => `<div class="part" data-part="${n}"><b>Part ${n+1}</b> <button data-act="rmpart">Remove</button>
       <div class="f"><label class="l">Venue</label> ${venueInner(p.venue, `parts.${n}.venue.`)}</div>
@@ -304,6 +305,15 @@ function listings(){
 // Answers about a place are kept by its printed name and address, so an
 // unsaved answer never lands on a different place after a rebuild.
 const placeKey = v => `${v.wording}|${v.address}`;
+// Claude's note when a printed place looks too vague to save as a wording.
+// Only a note: the choice stays Mick's.
+function vagueNote(g){
+  if (!g || !g.verdict || g.verdict === "ok") return "";
+  const head = g.verdict === "too_vague" ? "Claude: this wording looks too vague to save"
+                                         : "Claude: fine for this pull source only, too vague for all pull sources";
+  return `<div class="small vague">${head}${g.why ? " — " + esc(g.why) : ""}</div>`;
+}
+
 function vpVenues(){
   if (!R.vp_venues.length) return `<p class="muted">None this week.</p>`;
   const rows = R.vp_venues.map((v, n) => {
@@ -312,10 +322,10 @@ function vpVenues(){
       : {mode:"new", name: (v.suggest && v.suggest.new && v.suggest.new.name) || v.wording, address: (v.suggest && v.suggest.new && v.suggest.new.address) || v.address},
       scope: (v.suggest && v.suggest.scope) || "all"});
     return `<div class="vrow" data-vn="${n}"><label><input type="checkbox" data-k="on" ${a.on?"checked":""}> <b>${esc(v.wording)}</b></label>
-      <span class="where small">${(v.other_wordings||[]).length ? `also printed as ${esc(v.other_wordings.join("; "))} · ` : ""}${esc(v.address)} · ${v.lids.length} event${v.lids.length>1?"s":""}: ${esc(v.titles.join("; "))}</span>
+      <span class="where small">${(v.other_wordings||[]).length ? `also printed as ${esc(v.other_wordings.join("; "))} (not saved) · ` : ""}${esc(v.address)} · ${v.lids.length} event${v.lids.length>1?"s":""}: ${esc(v.titles.join("; "))}</span>
       <div class="f">${venueInner(a.v, "v.")}</div>
-      <div class="small">Use this name in: <label><input type="radio" name="vs-${n}" data-k="scope" value="bulletin" ${a.scope!=="all"?"checked":""}> Visit Pittsburgh only</label>
-      <label><input type="radio" name="vs-${n}" data-k="scope" value="all" ${a.scope==="all"?"checked":""}> All bulletins</label></div></div>`;
+      <div class="small">Save this wording for: <label><input type="radio" name="vs-${n}" data-k="scope" value="bulletin" ${a.scope!=="all"?"checked":""}> Only this pull source</label>
+      <label><input type="radio" name="vs-${n}" data-k="scope" value="all" ${a.scope==="all"?"checked":""}> All pull sources</label></div>${vagueNote(v.vague)}</div>`;
   }).join("");
   return `<p class="small"><button id="vpAll">Check all</button> <button id="vpNone">Uncheck all</button>
     <span class="note">Each checked place goes into the map. Its street address then matches for every source.</span></p>${rows}`;
@@ -385,7 +395,7 @@ main.addEventListener("click", e => {
   }
   const it = itemOf(b); if (!it) return;
   const st = state(it), act = b.dataset.act;
-  if (act === "approve" || act === "drop") st.action = st.action === act ? null : act;
+  if (act === "approve" || act === "drop" || act === "skip") st.action = st.action === act ? null : act;
   if (act === "split") st.parts = [{venue:{mode:"map",id:it.venue_id||""}}, {venue:{mode:"map",id:""}}];
   if (act === "addpart") st.parts.push({venue:{mode:"map",id:""}});
   if (act === "rmpart"){ st.parts.splice(+b.closest("[data-part]").dataset.part, 1); if (st.parts.length < 2) st.parts = null; }
@@ -436,6 +446,7 @@ function collect(){
     const st = A.items[it.lid]; if (!st || !st.action) continue;
     const base = {lid:it.lid, key:it.key, source:it.source, kind:it.kind, printed:it.printed, action:st.action};
     if (st.action === "drop"){ items.push({...base, drop_reason:"dropped on review"}); continue; }
+    if (st.action === "skip"){ items.push(base); continue; }
     const v = st.v, o = original(it), fields = {}, bad = [];
     const flagged = f => f in it.flags;
     const changed = f => v[f] !== o[f];
