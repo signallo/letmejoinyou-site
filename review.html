@@ -38,6 +38,7 @@ table.stats th,table.stats td{padding:3px 8px;border-bottom:1px solid var(--rule
 table.stats th:first-child,table.stats td:first-child{text-align:left;white-space:normal}
 table.stats tr.all td{font-weight:bold}
 .item{border-top:1px solid var(--rule);padding:12px 0 14px}
+.problem{border:2px solid var(--bad);padding:10px 12px;margin:12px 0}
 .item.approve{background:var(--ok);box-shadow:-8px 0 0 var(--ok),8px 0 0 var(--ok)}
 .item.drop,.item.skip{background:var(--drop);box-shadow:-8px 0 0 var(--drop),8px 0 0 var(--drop)}
 .item.drop .fields,.item.skip .fields{opacity:.45}
@@ -217,6 +218,9 @@ function prefilled(it){
       v[f] = f === "dates" ? x.value.map(md).join(", ") : x.value;
     }
   }
+  // A bare wording ("the school cafeteria") names no particular place: its
+  // venue is answered for this one listing and never saved as a wording.
+  if (it.bare_wording) v.scope = "listing";
   if (!v.scope) v.scope = isVP(it) ? "all" : "bulletin";
   return v;
 }
@@ -269,7 +273,8 @@ function itemHtml(it){
     h += `<div class="row">` + fieldWrap(it, "start_time", "Starts", `<input class="t" data-k="start_time" value="${esc(v.start_time)}" placeholder="7:00 PM">`)
        + fieldWrap(it, "end_time", "Ends", `<input class="t" data-k="end_time" value="${esc(v.end_time)}" placeholder="none">`) + `</div>`;
     h += fieldWrap(it, "venue", "Venue", venueInner(v.venue, "venue.") +
-      `<div class="small">Save this wording for: <label><input type="radio" name="sc-${it.lid}" data-k="scope" value="bulletin" ${v.scope!=="all"?"checked":""}> Only this pull source</label>
+      `<div class="small">Save this wording for: <label><input type="radio" name="sc-${it.lid}" data-k="scope" value="listing" ${v.scope==="listing"?"checked":""}> This listing only (don't save a wording)</label>
+       <label><input type="radio" name="sc-${it.lid}" data-k="scope" value="bulletin" ${v.scope!=="all"&&v.scope!=="listing"?"checked":""}> Only this pull source</label>
        <label><input type="radio" name="sc-${it.lid}" data-k="scope" value="all" ${v.scope==="all"?"checked":""}> All pull sources</label></div>` + vagueNote((it.suggest||{}).vague));
   } else {
     h += st.parts.map((p, n) => `<div class="part" data-part="${n}"><b>Part ${n+1}</b> <button data-act="rmpart">Remove</button>
@@ -339,6 +344,7 @@ function render(){
   main.innerHTML = `<p class="center">Week of ${esc(shortDay(R.week))} · built ${esc((R.built_at||"").replace("T"," "))} · ${R.published} events published</p>
     <nav class="jump"><a href="#numbers">Numbers</a> · <a href="#questions">Same event? (${R.questions.length})</a> ·
       <a href="#listings">Listings (${nItems})</a> · <a href="#vp">Visit Pittsburgh places (${R.vp_venues.length})</a></nav>
+    ${(R.problems||[]).map(p => `<div class="problem"><b>Problem with this build:</b> ${esc(p)}</div>`).join("")}
     <h2 id="numbers">This week's numbers</h2>${stats()}
     <h2 id="questions">Same event?</h2><p class="note">Until you answer, neither listing is published (last week's event stays up meanwhile).</p>${questions()}
     <h2 id="listings">Listings to check</h2><p class="note">Highlighted boxes need you. They are filled in with a suggestion where there is one; the printed text is underneath. Approve publishes the listing as the boxes show it. Anything you leave alone isn't published this week.</p>${listings()}
