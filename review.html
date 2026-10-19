@@ -303,10 +303,9 @@ function itemHtml(it){
   return h + `<div class="err" data-err></div></div></div>`;
 }
 function listings(){
-  // Visit Pittsburgh listings whose only question is the venue are answered
-  // in the venue list; listings held only by a same-event question wait for it.
-  const items = R.items.filter(it => Object.keys(it.flags).length &&
-    !(isVP(it) && Object.keys(it.flags).length === 1 && it.flags.venue));
+  // Every listing with a question, from every source (decided 10/19: no
+  // separate places section). Listings held only by a same-event question wait for it.
+  const items = R.items.filter(it => Object.keys(it.flags).length);
   if (!items.length) return `<p class="muted">None this week.</p>`;
   const bySource = {};
   for (const it of items) (bySource[it.source] ||= []).push(it);
@@ -315,10 +314,6 @@ function listings(){
     bySource[s].sort((a,b) => a.title.localeCompare(b.title)).map(itemHtml).join("")).join("");
 }
 
-// ------------------------------------------------------------------ VP venues
-// Answers about a place are kept by its printed name and address, so an
-// unsaved answer never lands on a different place after a rebuild.
-const placeKey = v => `${v.wording}|${v.address}`;
 // Claude's note when a printed place looks too vague to save as a wording.
 // Only a note: the choice stays Mick's.
 function vagueNote(g){
@@ -328,36 +323,18 @@ function vagueNote(g){
   return `<div class="small vague">${head}${g.why ? " — " + esc(g.why) : ""}</div>`;
 }
 
-function vpVenues(){
-  if (!R.vp_venues.length) return `<p class="muted">None this week.</p>`;
-  const rows = R.vp_venues.map((v, n) => {
-    const vk = placeKey(v);
-    const a = A.venues[vk] || (A.venues[vk] = {on:false, v: v.suggest && v.suggest.venue_id ? {mode:"map", id:v.suggest.venue_id}
-      : {mode:"new", name: (v.suggest && v.suggest.new && v.suggest.new.name) || v.wording, address: (v.suggest && v.suggest.new && v.suggest.new.address) || v.address},
-      scope: (v.suggest && v.suggest.scope) || "all"});
-    return `<div class="vrow" data-vn="${n}"><label><input type="checkbox" data-k="on" ${a.on?"checked":""}> <b>${esc(v.wording)}</b></label>
-      <span class="where small">${(v.other_wordings||[]).length ? `also printed as ${esc(v.other_wordings.join("; "))} (not saved) · ` : ""}${esc(v.address)} · ${v.lids.length} event${v.lids.length>1?"s":""}: ${esc(v.titles.join("; "))}</span>
-      <div class="f">${venueInner(a.v, "v.")}</div>
-      <div class="small">Save this wording for: <label><input type="radio" name="vs-${n}" data-k="scope" value="bulletin" ${a.scope!=="all"?"checked":""}> Only this pull source</label>
-      <label><input type="radio" name="vs-${n}" data-k="scope" value="all" ${a.scope==="all"?"checked":""}> All pull sources</label></div>${vagueNote(v.vague)}</div>`;
-  }).join("");
-  return `<p class="small"><button id="vpAll">Check all</button> <button id="vpNone">Uncheck all</button>
-    <span class="note">Each checked place goes into the map. Its street address then matches for every source.</span></p>${rows}`;
-}
-
 // ------------------------------------------------------------------ page
 function render(){
   VENUES = Object.fromEntries(R.venues.map(v => [v.id, v]));
   VENUE_BY_LABEL = Object.fromEntries(R.venues.map(v => [venueText(v), v.id]));
-  const nItems = R.items.filter(it => Object.keys(it.flags).length && !(isVP(it) && Object.keys(it.flags).length===1 && it.flags.venue)).length;
+  const nItems = R.items.filter(it => Object.keys(it.flags).length).length;
   main.innerHTML = `<p class="center">Week of ${esc(shortDay(R.week))} · built ${esc((R.built_at||"").replace("T"," "))} · ${R.published} events published</p>
     <nav class="jump"><a href="#numbers">Numbers</a> · <a href="#questions">Same event? (${R.questions.length})</a> ·
-      <a href="#listings">Listings (${nItems})</a> · <a href="#vp">Visit Pittsburgh places (${R.vp_venues.length})</a></nav>
+      <a href="#listings">Listings (${nItems})</a></nav>
     ${(R.problems||[]).map(p => `<div class="problem"><b>Problem with this build:</b> ${esc(p)}</div>`).join("")}
     <h2 id="numbers">This week's numbers</h2>${stats()}
     <h2 id="questions">Same event?</h2><p class="note">Until you answer, neither listing is published (last week's event stays up meanwhile).</p>${questions()}
     <h2 id="listings">Listings to check</h2><p class="note">Highlighted boxes need you. They are filled in with a suggestion where there is one; the printed text is underneath. Approve publishes the listing as the boxes show it. Anything you leave alone isn't published this week.</p>${listings()}
-    <h2 id="vp">Visit Pittsburgh places</h2>${vpVenues()}
     <datalist id="venues">${R.venues.map(v => `<option value="${esc(venueText(v))}">`).join("")}</datalist>
     <p class="note center"><a href="#" id="forget">Forget my token on this browser</a> · <a href="#" id="clearDraft">Start over (clear unsaved answers)</a></p>`;
   bar();
@@ -386,13 +363,6 @@ main.addEventListener("input", e => {
     else setPath(st.v, k, val);
     if (k.endsWith("mode")) rerenderItem(it);
   }
-  const vr = el.closest("[data-vn]");
-  if (vr){
-    const a = A.venues[placeKey(R.vp_venues[vr.dataset.vn])];
-    if (k === "on") a.on = el.checked; else if (k === "scope") a.scope = val;
-    else if (k.endsWith(".id")) a.v.id = VENUE_BY_LABEL[val] || ""; else setPath(a, k, val);
-    if (k.endsWith("mode")){ const n = vr.dataset.vn; const t = document.createElement("div"); t.innerHTML = vpVenues(); vr.replaceWith(t.querySelector(`[data-vn="${n}"]`)); }
-  }
   saveDraft();
 });
 main.addEventListener("click", e => {
@@ -402,7 +372,6 @@ main.addEventListener("click", e => {
     if (b.dataset.sure){ store.del(draftKey()); A = {items:{},questions:{},venues:{}}; render(); }
     else { b.dataset.sure = "1"; b.textContent = "Click again to clear every answer you haven't saved"; }
     return; }
-  if (b.id === "vpAll" || b.id === "vpNone"){ for (const k of Object.keys(A.venues)) A.venues[k].on = b.id === "vpAll"; render(); location.hash = "#vp"; saveDraft(); return; }
   const qd = b.closest("[data-q]");
   if (qd && b.dataset.qa){
     const a = A.questions[qd.dataset.q] ||= {};
@@ -505,29 +474,23 @@ function collect(){
     if (a.same && q.times_differ && !a.time){ errs.push(`Same event? ${q.a.title}: pick which time is right`); continue; }
     same.push({a:q.key_a, b:q.key_b, same:a.same, time_from: a.same && a.time ? (a.time === "a" ? q.key_a : q.key_b) : ""});
   }
-  const venues = [];
-  R.vp_venues.forEach((v, n) => {
-    const a = A.venues[placeKey(v)]; if (!a || !a.on) return;
-    const c = venueChoice(a.v, errs, v.wording); if (!c){ errs.push(`${v.wording}: pick or enter the venue`); return; }
-    venues.push({source:v.source, wording:v.wording, other_wordings:v.other_wordings||[], venue:c, scope:a.scope});
-  });
-  return {errs, answers:{saved_at:new Date().toISOString(), week:R.week, items, same, venues}};
+  return {errs, answers:{saved_at:new Date().toISOString(), week:R.week, items, same, venues:[]}};
 }
 function bar(){
   const {answers} = collect();
-  const n = answers.items.length + answers.same.length + answers.venues.length;
+  const n = answers.items.length + answers.same.length;
   document.getElementById("bar").hidden = false;
-  document.getElementById("barText").textContent = n ? `${answers.items.length} listings, ${answers.same.length} questions, ${answers.venues.length} places ready` : "Nothing answered yet";
+  document.getElementById("barText").textContent = n ? `${answers.items.length} listings, ${answers.same.length} questions ready` : "Nothing answered yet";
 }
 function b64(s){ const b = new TextEncoder().encode(s); let x = ""; for (let i = 0; i < b.length; i += 0x8000) x += String.fromCharCode(...b.subarray(i, i + 0x8000)); return btoa(x); }
 document.getElementById("saveBtn").onclick = async () => {
   const {errs, answers} = collect();
   for (const el of main.querySelectorAll("[data-err]")) el.textContent = "";
   if (errs.length){ say("Fix these first:\n" + errs.join("\n")); return; }
-  if (!answers.items.length && !answers.same.length && !answers.venues.length){ say("Nothing to save yet."); return; }
+  if (!answers.items.length && !answers.same.length){ say("Nothing to save yet."); return; }
   say("");
   if (document.getElementById("embedded")){
-    say(`This is a preview, so nothing was saved. On the real page this would save ${answers.items.length} listings, ${answers.same.length} questions and ${answers.venues.length} places, then rebuild the site.`);
+    say(`This is a preview, so nothing was saved. On the real page this would save ${answers.items.length} listings and ${answers.same.length} questions, then rebuild the site.`);
     return;
   }
   const btn = document.getElementById("saveBtn"); btn.disabled = true; btn.textContent = "Saving…";
