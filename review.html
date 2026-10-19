@@ -225,7 +225,16 @@ function prefilled(it){
   return v;
 }
 const state = it => (A.items[it.lid] ||= {action:null, v: prefilled(it), parts:null});
-const venueLabel = id => { const v = VENUES[id]; return v ? `${v.name} — ${v.address}` : ""; };
+// What the venue list shows and searches, short enough to read in the box:
+// the parish first (so typing "Pio" lists that parish's venues together), then
+// the venue's name and town. The full address shows under the box once picked.
+const townOf = a => { const m = (a||"").match(/,\s*([^,]+?),\s*PA\b/); return m ? m[1].trim() : ""; };
+const venueText = v => {
+  const t = townOf(v.address), p = v.parish && v.parish !== "None" ? v.parish.replace(/\s+Parish$/, "") : "";
+  const n = t && !v.name.endsWith(`(${t})`) ? `${v.name}, ${t}` : v.name;
+  return p ? `${p}: ${n}` : n;
+};
+const venueLabel = id => { const v = VENUES[id]; return v ? venueText(v) : ""; };
 let VENUES = {}, VENUE_BY_LABEL = {};
 
 function printedFor(it, f){
@@ -250,7 +259,7 @@ function venueInner(v, idp){
   const m = v.mode || "map";
   return `<select data-k="${idp}mode"><option value="map" ${m==="map"?"selected":""}>Venue in the map</option>
       <option value="new" ${m==="new"?"selected":""}>New venue</option><option value="none" ${m==="none"?"selected":""}>Not a place (drop)</option></select>
-    ${m==="map" ? `<input class="v" list="venues" data-k="${idp}id" value="${esc(venueLabel(v.id))}" placeholder="Type to search the map">` : ""}
+    ${m==="map" ? `<input class="v" list="venues" data-k="${idp}id" value="${esc(venueLabel(v.id))}" placeholder="Type a parish or venue name"><div class="where small" data-addr>${esc((VENUES[v.id]||{}).address||"")}</div>` : ""}
     ${m==="new" ? `<br><input class="v" data-k="${idp}name" value="${esc(v.name||"")}" placeholder="Venue name"> <input class="v" data-k="${idp}address" value="${esc(v.address||"")}" placeholder="Street, Town, PA 15xxx">` : ""}`;
 }
 function itemHtml(it){
@@ -339,7 +348,7 @@ function vpVenues(){
 // ------------------------------------------------------------------ page
 function render(){
   VENUES = Object.fromEntries(R.venues.map(v => [v.id, v]));
-  VENUE_BY_LABEL = Object.fromEntries(R.venues.map(v => [`${v.name} — ${v.address}`, v.id]));
+  VENUE_BY_LABEL = Object.fromEntries(R.venues.map(v => [venueText(v), v.id]));
   const nItems = R.items.filter(it => Object.keys(it.flags).length && !(isVP(it) && Object.keys(it.flags).length===1 && it.flags.venue)).length;
   main.innerHTML = `<p class="center">Week of ${esc(shortDay(R.week))} · built ${esc((R.built_at||"").replace("T"," "))} · ${R.published} events published</p>
     <nav class="jump"><a href="#numbers">Numbers</a> · <a href="#questions">Same event? (${R.questions.length})</a> ·
@@ -349,7 +358,7 @@ function render(){
     <h2 id="questions">Same event?</h2><p class="note">Until you answer, neither listing is published (last week's event stays up meanwhile).</p>${questions()}
     <h2 id="listings">Listings to check</h2><p class="note">Highlighted boxes need you. They are filled in with a suggestion where there is one; the printed text is underneath. Approve publishes the listing as the boxes show it. Anything you leave alone isn't published this week.</p>${listings()}
     <h2 id="vp">Visit Pittsburgh places</h2>${vpVenues()}
-    <datalist id="venues">${R.venues.map(v => `<option value="${esc(v.name + " — " + v.address)}">`).join("")}</datalist>
+    <datalist id="venues">${R.venues.map(v => `<option value="${esc(venueText(v))}">`).join("")}</datalist>
     <p class="note center"><a href="#" id="forget">Forget my token on this browser</a> · <a href="#" id="clearDraft">Start over (clear unsaved answers)</a></p>`;
   bar();
 }
@@ -365,6 +374,8 @@ function rerenderItem(it){
 }
 main.addEventListener("input", e => {
   const el = e.target, k = el.dataset.k; if (!k) return;
+  if (k.endsWith(".id") && el.nextElementSibling && el.nextElementSibling.hasAttribute("data-addr"))
+    el.nextElementSibling.textContent = (VENUES[VENUE_BY_LABEL[el.value]]||{}).address || "";
   const it = itemOf(el);
   const val = el.type === "checkbox" ? el.checked : el.value;
   if (it){
