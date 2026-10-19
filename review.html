@@ -232,7 +232,7 @@ function printedFor(it, f){
   const p = it.printed || {};
   const keys = {venue:["location_text","address"], title:["title"], date_start:["date_text"], date_end:["date_text"],
     dates:["recurrence_text","date_text"], start_time:["start_time_text","date_text","recurrence_text"],
-    end_time:["end_time_text","start_time_text"], event_type:["title"], audience:["title"], category:["title"]}[f] || [];
+    end_time:["end_time_text","start_time_text","date_text"], event_type:["title"], audience:["title"], category:["title"]}[f] || [];
   const parts = keys.map(k => p[k]).filter(Boolean);
   return parts.length ? `Printed: “${esc([...new Set(parts)].join(" · "))}”` : "Printed: nothing";
 }
