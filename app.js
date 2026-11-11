@@ -51,14 +51,14 @@ function home(){
       <h2 class="big">Let's grab a cup of coffee.</h2>
       <p class="narrow" style="margin-top:0;margin-bottom:12px"><i>${esc(SITE.quote)}</i> The Doors got it right with that one. I've been there plenty of times myself. But then one of those "ugly" faces smiles at me, and it shakes me out of it.</p>
       <p class="narrow" style="margin-top:0;margin-bottom:18px">If it's been awhile since an ugly face smiled at you, I volunteer mine :) Pick a coffee shop and let me join you. -Mick</p>
-      <a class="btn" href="${sms("Hi Mick, I saw your site. Want to grab coffee sometime?")}">Let's get coffee</a>
+      <a class="btn" data-tap="text_lets_get_coffee" href="${sms("Hi Mick, I saw your site. Want to grab coffee sometime?")}">Let's get coffee</a>
       <p class="muted small" style="margin:12px 0 0">Or just text me at ${esc(PHONE_SHOWN)}.</p>
     </section>
     <hr class="big">
     <section>
       <p class="spaced">OR WE COULD</p>
       <div class="grid2">
-        ${offers.map(([t,d,b]) => `<div><a class="big-link" href="${sms(b)}">${esc(t)}</a><div class="muted small">${esc(d)}</div></div>`).join("")}
+        ${offers.map(([t,d,b]) => `<div><a class="big-link" data-tap="text_or_we_could" href="${sms(b)}">${esc(t)}</a><div class="muted small">${esc(d)}</div></div>`).join("")}
       </div>
     </section>
     <hr class="big">
@@ -85,7 +85,7 @@ function home(){
     <section>
       <p class="spaced">HI, I'M MICK</p>
       <p style="margin:0 0 12px">I live in Pittsburgh, and I made this site to try and lower the amount of isolation in our community. The "ugly faces" thing is from <a href="https://www.youtube.com/watch?v=AgHaGrZkkv4" target="_blank" rel="noopener">People Are Strange</a> by The Doors. It basically means that isolation is a big problem because it makes other people seem ugly and frightening to us. But when an "ugly" face smiles at us, it challenges that lie. Because there's no such thing as an ugly face with a smile on it. If you want to support the site, please check out the links below.</p>
-      <p class="center" style="margin:0"><a href="${SITE.phone ? sms("Hi Mick, I'd like to volunteer with LMJY.") : "/"}">Volunteer</a> &nbsp;|&nbsp; <a href="${SITE.support ? esc(SITE.support) : "/support/"}">Support this site</a></p>
+      <p class="center" style="margin:0"><a data-tap="text_volunteer" href="${SITE.phone ? sms("Hi Mick, I'd like to volunteer with LMJY.") : "/"}">Volunteer</a> &nbsp;|&nbsp; <a href="${SITE.support ? esc(SITE.support) : "/support/"}">Support this site</a></p>
     </section>`;
 }
 
@@ -195,7 +195,7 @@ function detail(id){
       ${sources}
     </dl>
     <p class="center" style="margin:22px 0 8px">Don't want to go alone?</p>
-    <p class="center" style="margin:0"><a class="btn" href="${ask}">Let me join you</a></p>
+    <p class="center" style="margin:0"><a class="btn" data-tap="text_let_me_join_you" href="${ask}">Let me join you</a></p>
     <p class="center muted small" style="margin:12px 0 22px">Or just text me at ${esc(PHONE_SHOWN)}.</p>
     <p class="center"><a href="${catHref(c)}">Back to ${esc(lower(c))}</a></p>`;
 }
@@ -268,8 +268,17 @@ function support(){
 function privacy(){
   main.innerHTML = `<p class="spaced">PRIVACY</p>
     <p>If you sign up for the email, I keep your address on a private list so I can send you things (weekly events and general LMJY updates). To get off the list, reply to any email or write to <a href="mailto:hi@letmejoinyou.com">hi@letmejoinyou.com</a>. If you text me, your number stays in my messages. I don't share or sell any emails or phone numbers.</p>
+    <p>This site uses Google Analytics to count visits and see which pages and links people use. It doesn't tell me who you are.</p>
     <p class="center"><a href="/">Back home</a></p>`;
 }
+
+// Count taps on the text-message links in Google Analytics: which link
+// (the event's name) and its words. Nothing about the person or the message.
+document.addEventListener("click", ev => {
+  const a = ev.target.closest && ev.target.closest("a[data-tap]");
+  if (!a || !a.href.startsWith("sms:") || typeof gtag !== "function") return;
+  gtag("event", a.dataset.tap, {link_text: a.textContent.trim()});
+});
 
 // The sign-up box sends the address to the sign-up sheet (a Google Apps
 // Script web app that only adds a row) and says thanks in place.
