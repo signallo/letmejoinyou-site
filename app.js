@@ -40,19 +40,19 @@ function toMin(t){ if(!t) return 9999; const m=t.match(/(\d+):(\d+)(AM|PM)/); le
 
 function home(){
   const offers = [
-    ["Catch a movie", "You pick the movie.", "Hi Mick, want to catch a movie sometime?"],
-    ["Take a walk", "Any park or trail you like.", "Hi Mick, want to take a walk sometime?"],
-    ["Go to a museum or the library", "Phipps, Frick, Carnegie, etc.", "Hi Mick, want to go to a museum or the library sometime?"],
-    ["Play a game", "I (sort of) know Backgammon and Chess. Or you can teach me a new one.", "Hi Mick, want to play a game sometime?"],
+    ["Catch a movie", "You pick the movie.", "Hi, I saw the Let Me Join You site. Want to catch a movie sometime?"],
+    ["Take a walk", "Any park or trail you like.", "Hi, I saw the Let Me Join You site. Want to take a walk sometime?"],
+    ["Go to a museum or the library", "Phipps, Frick, Carnegie, etc.", "Hi, I saw the Let Me Join You site. Want to go to a museum or the library sometime?"],
+    ["Play a game", "Chess and Backgammon are some of our favorites. And we like learning new ones too.", "Hi, I saw the Let Me Join You site. Want to play a board game sometime?"],
   ];
   main.innerHTML = `
     <section class="center">
       <p class="spaced">LONELY?</p>
       <h2 class="big">Let's grab a cup of coffee.</h2>
-      <p class="narrow" style="margin-top:0;margin-bottom:12px"><i>${esc(SITE.quote)}</i> The Doors got it right with that one. I've been there plenty of times myself. But then one of those "ugly" faces smiles at me, and it shakes me out of it.</p>
-      <p class="narrow" style="margin-top:0;margin-bottom:18px">If it's been awhile since an ugly face smiled at you, I volunteer mine :) Pick a coffee shop and let me join you. -Mick</p>
-      <a class="btn" data-tap="text_lets_get_coffee" href="${sms("Hi Mick, I saw your site. Want to grab coffee sometime?")}">Let's get coffee</a>
-      <p class="muted small" style="margin:12px 0 0">Or just text me at ${esc(PHONE_SHOWN)}.</p>
+      <p class="narrow" style="margin-top:0;margin-bottom:12px"><i>${esc(SITE.quote)}</i> The Doors got it right with that one. Most of us have been there plenty of times. But then one of those "ugly" faces smiles at you, and the world starts to feel friendly again.</p>
+      <p class="narrow" style="margin-top:0;margin-bottom:18px">Let Me Join You is a community building project that connects folks experiencing loneliness with friendly neighbors in the Pittsburgh area for a cup of coffee. So if it's been a while since an ugly face smiled at you, we volunteer ours :) Tap the button below to get started.</p>
+      <a class="btn" data-tap="text_lets_get_coffee" href="${sms("Hi, I saw the Let Me Join You site. Want to grab coffee sometime?")}">Let's get coffee</a>
+      <p class="muted small" style="margin:12px 0 0">Or just text ${esc(PHONE_SHOWN)}.</p>
     </section>
     <hr class="big">
     <section>
@@ -64,15 +64,15 @@ function home(){
     <hr class="big">
     <section>
       <p class="spaced" style="margin-bottom:4px">GOING ON THIS WEEK</p>
-      <p style="margin:8px 0">These are some of the things I'm interested in, so I built a few web tools that collect events in each. If one of these looks good and you don't want to go alone, let's go together.</p>
+      <p style="margin:8px 0">These are some of the things we're interested in, so we built a few web tools that collect events in each. If one of these looks good and you don't want to go alone, let's go together.</p>
       ${CATS.map(c => `<h3 class="cat">${esc(c.n)}</h3><p class="tight">${esc(c.d)}</p><p style="margin:0"><a href="${catHref(c)}">See ${esc(lower(c))}</a></p>`).join("")}
-      <p style="margin:22px 0 0">If there's something you want to go to that isn't on here, tell me about it. I like checking out new things. Honestly, when someone shares what they're passionate about, it sometimes becomes infectious and you end up discovering that you like it too. So don't be shy!</p>
+      <p style="margin:22px 0 0">If there's something you want to go to that isn't on here, tell us about it. We like checking out new things. Honestly, when someone shares what they're passionate about, it sometimes becomes infectious and you end up discovering that you like it too. So don't be shy!</p>
     </section>
     ${SITE.newsletter ? `
     <hr class="big">
     <section class="center">
       <p class="spaced" style="margin-bottom:10px">EVERY SUNDAY BY EMAIL</p>
-      <p style="margin:0 0 12px">I pick a few of the most interesting events and send them to you, along with general LMJY updates.</p>
+      <p style="margin:0 0 12px">We pick a few of the most interesting events and send them to you, along with general LMJY updates.</p>
       <form class="signup" id="signup">
         <label for="em" class="vh">Email address</label>
         <input id="em" name="email" type="email" required placeholder="you@example.com">
@@ -84,7 +84,8 @@ function home(){
     <hr class="big">
     <section>
       <p class="spaced">HI, I'M MICK</p>
-      <p style="margin:0 0 12px">I live in Pittsburgh, and I made this site to try and lower the amount of isolation in our community. The "ugly faces" thing is from <a href="https://www.youtube.com/watch?v=AgHaGrZkkv4" target="_blank" rel="noopener">People Are Strange</a> by The Doors. It basically means that isolation is a big problem because it makes other people seem ugly and frightening to us. But when an "ugly" face smiles at us, it challenges that lie. Because there's no such thing as an ugly face with a smile on it. If you want to support the site, please check out the links below.</p>
+      <p style="margin:0 0 12px">I live in Pittsburgh, and I made this site to try and lower the amount of isolation in our community. The "ugly faces" thing is from <a href="https://www.youtube.com/watch?v=AgHaGrZkkv4" target="_blank" rel="noopener">People Are Strange</a> by The Doors. It basically means that isolation is a big problem because it makes other people seem ugly and frightening to us. But when an "ugly" face smiles at us, it challenges that lie. Because there's no such thing as an ugly face with a smile on it.</p>
+      <p style="margin:0 0 12px">If you want to support the site, please check out the links below.</p>
       <p class="center" style="margin:0"><a data-tap="text_volunteer" href="${SITE.phone ? sms("Hi Mick, I'd like to volunteer with LMJY.") : "/"}">Volunteer</a> &nbsp;|&nbsp; <a href="${SITE.support ? esc(SITE.support) : "/support/"}">Support this site</a></p>
     </section>`;
 }
@@ -178,7 +179,7 @@ function detail(id){
   const aud = (AUD.find(a => a[0]===e.au)||["",e.au])[1];
   // The text names the event and date, then links to this event's page.
   const link = `${location.origin}/event/${e.id}/?d=${d}`;
-  const ask = sms(`Hi Mick, want to go to ${e.t} on ${longDay(d)}? ${link}`);
+  const ask = sms(`Hi, I saw the Let Me Join You site. Want to go to ${e.t} on ${longDay(d)}? ${link}`);
   const sources = vp
     ? `<dt>Listed on</dt><dd>${e.src.map(([p,u],i)=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(p)}${e.src.length>1?` (listing ${i+1})`:""}</a>`).join("<br>")}</dd>`
     : `<dt>From the bulletin of</dt><dd>${e.src.map(([p,u,pg])=>u?`<a href="${esc(pageUrl(u,pg))}" target="_blank" rel="noopener">${esc(p)}</a>${pg?`, page ${pg}`:""}`:esc(p)).join("<br>")}</dd>`;
@@ -196,7 +197,7 @@ function detail(id){
     </dl>
     <p class="center" style="margin:22px 0 8px">Don't want to go alone?</p>
     <p class="center" style="margin:0"><a class="btn" data-tap="text_let_me_join_you" href="${ask}">Let me join you</a></p>
-    <p class="center muted small" style="margin:12px 0 22px">Or just text me at ${esc(PHONE_SHOWN)}.</p>
+    <p class="center muted small" style="margin:12px 0 22px">Or just text ${esc(PHONE_SHOWN)}.</p>
     <p class="center"><a href="${catHref(c)}">Back to ${esc(lower(c))}</a></p>`;
 }
 
@@ -260,15 +261,15 @@ function support(){
   main.innerHTML = `<p class="spaced">SUPPORT THIS SITE</p>
     <p>Let Me Join You is an early stage project. Eventually I might have a donate button on this page, or some other way(s) for you to financially support it.</p>
     <p>But for now you can support the site by sharing it with people who might benefit from it or be able to give it a broader audience here in Pittsburgh.</p>
-    <p>If you'd like to volunteer your time to hang out with lonely folks, send me an email at <a href="mailto:hi@letmejoinyou.com">hi@letmejoinyou.com</a> or text me at ${esc(PHONE_SHOWN)}.</p>
+    <p>If you'd like to volunteer your time to hang out with folks who are experiencing loneliness, send me an email at <a href="mailto:hi@letmejoinyou.com">hi@letmejoinyou.com</a> or text me at ${esc(PHONE_SHOWN)}.</p>
     <p>Thanks,<br>Mick</p>
     <p class="center"><a href="/">Back home</a></p>`;
 }
 
 function privacy(){
   main.innerHTML = `<p class="spaced">PRIVACY</p>
-    <p>If you sign up for the email, I keep your address on a private list so I can send you things (weekly events and general LMJY updates). To get off the list, reply to any email or write to <a href="mailto:hi@letmejoinyou.com">hi@letmejoinyou.com</a>. If you text me, your number stays in my messages. I don't share or sell any emails or phone numbers.</p>
-    <p>This site uses Google Analytics to count visits and see which pages and links people use. It doesn't tell me who you are.</p>
+    <p>If you sign up for the email, we keep your address on a private list so we can send you things (weekly events and general LMJY updates). To get off the list, reply to any email or write to <a href="mailto:hi@letmejoinyou.com">hi@letmejoinyou.com</a>. If you text us, your number stays in our messages folder. We don't share or sell any emails or phone numbers.</p>
+    <p>This site uses Google Analytics to count visits and see which pages and links people use. Google Analytics doesn't collect anything that identifies you personally.</p>
     <p class="center"><a href="/">Back home</a></p>`;
 }
 
